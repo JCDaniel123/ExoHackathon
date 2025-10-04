@@ -40,7 +40,9 @@ export function Navigation() {
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   className={
-                    isActive ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30" : "hover:bg-secondary/50"
+                    isActive
+                      ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 text-primary-foreground"
+                      : "hover:bg-secondary/50 text-foreground hover:text-foreground"
                   }
                 >
                   <Link href={link.href} className="flex items-center gap-2">

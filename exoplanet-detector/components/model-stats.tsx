@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
-import { TrendingUp, Database, Calendar, CheckCircle2 } from "lucide-react"
+import { TrendingUp, CheckCircle2 } from "lucide-react"
 
 interface ModelMetrics {
   model_version: string
@@ -27,6 +26,30 @@ interface ModelMetrics {
     false_negatives: number
   }
   total_classifications: number
+}
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-lg">
+        <p className="text-white font-semibold">{payload[0].payload.name}</p>
+        <p className="text-cyan-400 font-medium">{payload[0].value.toFixed(1)}%</p>
+      </div>
+    )
+  }
+  return null
+}
+
+const CustomConfusionTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-lg">
+        <p className="text-white font-semibold">{payload[0].payload.name}</p>
+        <p className="text-cyan-400 font-medium">{payload[0].value} samples</p>
+      </div>
+    )
+  }
+  return null
 }
 
 export function ModelStats() {
@@ -56,10 +79,10 @@ export function ModelStats() {
   }))
 
   const confusionData = [
-    { name: "True Positives", value: stats.confusion_matrix.true_positives, color: "#22c55e" },
-    { name: "True Negatives", value: stats.confusion_matrix.true_negatives, color: "#3b82f6" },
-    { name: "False Positives", value: stats.confusion_matrix.false_positives, color: "#f59e0b" },
-    { name: "False Negatives", value: stats.confusion_matrix.false_negatives, color: "#ef4444" },
+    { name: "True Positives", value: stats.confusion_matrix.true_positives, color: "#06b6d4" },
+    { name: "True Negatives", value: stats.confusion_matrix.true_negatives, color: "#06b6d4" },
+    { name: "False Positives", value: stats.confusion_matrix.false_positives, color: "#06b6d4" },
+    { name: "False Negatives", value: stats.confusion_matrix.false_negatives, color: "#06b6d4" },
   ]
 
   return (
@@ -108,7 +131,7 @@ export function ModelStats() {
         <Card>
           <CardHeader className="pb-3">
             <CardDescription className="flex items-center gap-2">
-              <Database className="w-4 h-4" />
+              <TrendingUp className="w-4 h-4" />
               F1 Score
             </CardDescription>
           </CardHeader>
@@ -119,51 +142,6 @@ export function ModelStats() {
         </Card>
       </div>
 
-      {/* Model Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Model Information</CardTitle>
-          <CardDescription>Details about the current model version and training</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Model Version</p>
-              <Badge variant="outline">{stats.model_version}</Badge>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Dataset</p>
-              <p className="font-medium">{stats.dataset}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Trained At
-              </p>
-              <p className="font-medium">{new Date(stats.trained_at).toLocaleString()}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Total Classifications</p>
-              <p className="font-medium">{stats.total_classifications.toLocaleString()}</p>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t">
-            <p className="text-sm text-muted-foreground mb-2">Training Data</p>
-            <div className="flex gap-4">
-              <div>
-                <span className="font-medium">{stats.training_samples.toLocaleString()}</span>
-                <span className="text-sm text-muted-foreground ml-1">training samples</span>
-              </div>
-              <div>
-                <span className="font-medium">{stats.validation_samples.toLocaleString()}</span>
-                <span className="text-sm text-muted-foreground ml-1">validation samples</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Feature Importance */}
       <Card>
         <CardHeader>
@@ -173,18 +151,15 @@ export function ModelStats() {
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={featureData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--foreground))" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  color: "hsl(var(--foreground))",
-                }}
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} angle={-45} textAnchor="end" height={100} />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={12}
+                label={{ value: "Importance (%)", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
               />
-              <Bar dataKey="importance" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="importance" fill="#06b6d4" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -199,17 +174,14 @@ export function ModelStats() {
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={confusionData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--foreground))" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  color: "hsl(var(--foreground))",
-                }}
+              <CartesianGrid strokeDasharray="3 3" stroke="#06b6d4" opacity={0.2} />
+              <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={12}
+                label={{ value: "Count", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
               />
+              <Tooltip content={<CustomConfusionTooltip />} />
               <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                 {confusionData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
