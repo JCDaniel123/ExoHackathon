@@ -21,35 +21,9 @@ export interface ExoplanetData {
 }
 
 // Generate dummy exoplanet data
-export function generateDummyExoplanets(count = 50): ExoplanetData[] {
-  const data: ExoplanetData[] = []
-
-  for (let i = 0; i < count; i++) {
-    const classification = Math.random() > 0.3 ? "Confirmed" : Math.random() > 0.5 ? "Candidate" : "False Positive"
-
-    data.push({
-      id: `KOI-${1000 + i}`,
-      name: `Kepler-${1000 + i}b`,
-      snr: Number((Math.random() * 50 + 5).toFixed(2)),
-      flag_1: Math.random() > 0.7,
-      flag_2: Math.random() > 0.8,
-      flag_3: Math.random() > 0.85,
-      flag_4: Math.random() > 0.9,
-      disposition_score: Number((Math.random() * 0.5 + 0.5).toFixed(3)),
-      planetary_radius: Number((Math.random() * 15 + 0.5).toFixed(2)),
-      insolation_flux: Number((Math.random() * 2000 + 0.1).toFixed(2)),
-      surface_gravity: Number((Math.random() * 30 + 2).toFixed(2)),
-      orbital_period: Number((Math.random() * 400 + 0.5).toFixed(2)),
-      transit_duration: Number((Math.random() * 8 + 1).toFixed(2)),
-      transit_depth: Number((Math.random() * 0.04 + 0.001).toFixed(4)),
-      impact_parameter: Number((Math.random() * 0.9).toFixed(3)),
-      stellar_magnitude: Number((Math.random() * 8 + 8).toFixed(2)),
-      classification,
-      confidence: Number((Math.random() * 0.3 + 0.7).toFixed(3)),
-    })
-  }
-
-  return data
+export function generateDummyExoplanets(count = 0): ExoplanetData[] {
+  // No longer generating dummy data - users must upload their own
+  return []
 }
 
 // Parse CSV data

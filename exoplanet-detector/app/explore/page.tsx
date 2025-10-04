@@ -32,17 +32,21 @@ function Planet({ planet, index, onClick }: PlanetProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const [hovered, setHovered] = useState(false)
 
-  const orbitRadius = 5 + index * 3
-  const speed = 0.1 / (planet.orbital_period || 1)
-  const planetSize = Math.max(0.2, Math.min(0.8, planet.planetary_radius * 0.1))
-  const planetColor = planet.classification === "Confirmed" ? "#22c55e" : "#f59e0b"
+  const orbitRadius = 5 + (index % 10) * 2.5 // Distribute planets in layers
+  const speed = 0.05 / Math.max(planet.orbital_period, 1) // Speed based on real orbital period
+  const planetSize = Math.max(0.15, Math.min(1.2, planet.planetary_radius * 0.08)) // Size based on real radius
+
+  const planetColor =
+    planet.classification === "Confirmed" ? "#22c55e" : planet.classification === "Candidate" ? "#f59e0b" : "#ef4444" // Red for False Positive
 
   useFrame((state) => {
     if (meshRef.current) {
       const time = state.clock.getElapsedTime()
-      const angle = time * speed + index * 0.5
+      const angle = time * speed + index * 0.3
       meshRef.current.position.x = Math.cos(angle) * orbitRadius
       meshRef.current.position.z = Math.sin(angle) * orbitRadius
+      // Add slight vertical offset for visual variety
+      meshRef.current.position.y = Math.sin(angle * 2) * 0.5
     }
   })
 
@@ -251,6 +255,10 @@ export default function ExplorePage() {
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-4 rounded-full bg-orange-500" />
                   <span className="text-sm">Candidate</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full bg-red-500" />
+                  <span className="text-sm">False Positive</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-4 rounded-full bg-yellow-400" />
