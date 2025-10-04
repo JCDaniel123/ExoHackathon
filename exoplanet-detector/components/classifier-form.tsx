@@ -19,6 +19,7 @@ interface ClassificationResult {
   probability_false_positive: number
   features: any
   timestamp: string
+  model_used?: string
 }
 
 export function ClassifierForm() {
@@ -27,15 +28,24 @@ export function ClassifierForm() {
   const [result, setResult] = useState<ClassificationResult | null>(null)
 
   const [formData, setFormData] = useState({
-    orbital_period: "",
-    transit_duration: "",
-    transit_depth: "",
-    stellar_magnitude: "",
-    planet_radius: "",
-    insolation_flux: "",
-    surface_gravity: "",
-    impact_parameter: "",
-    snr: "",
+    koi_model_snr: "",
+    koi_prad: "",
+    koi_insol: "",
+    koi_slogg: "",
+    koi_period: "",
+    koi_duration: "",
+    koi_depth: "",
+    koi_impact: "",
+    koi_steff: "",
+    koi_period_err1: "",
+    koi_period_err2: "",
+    koi_depth_err1: "",
+    koi_depth_err2: "",
+    koi_duration_err1: "",
+    koi_duration_err2: "",
+    koi_prad_err1: "",
+    koi_prad_err2: "",
+    koi_srad: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,20 +54,18 @@ export function ClassifierForm() {
     setResult(null)
 
     try {
+      // Convert all form data to numbers
+      const payload: any = {}
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== "") {
+          payload[key] = Number.parseFloat(value)
+        }
+      })
+
       const response = await fetch("/api/classify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orbital_period: Number.parseFloat(formData.orbital_period),
-          transit_duration: Number.parseFloat(formData.transit_duration),
-          transit_depth: Number.parseFloat(formData.transit_depth),
-          stellar_magnitude: Number.parseFloat(formData.stellar_magnitude),
-          planet_radius: Number.parseFloat(formData.planet_radius),
-          insolation_flux: formData.insolation_flux ? Number.parseFloat(formData.insolation_flux) : undefined,
-          surface_gravity: formData.surface_gravity ? Number.parseFloat(formData.surface_gravity) : undefined,
-          impact_parameter: formData.impact_parameter ? Number.parseFloat(formData.impact_parameter) : undefined,
-          snr: formData.snr ? Number.parseFloat(formData.snr) : undefined,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -89,129 +97,247 @@ export function ClassifierForm() {
     }))
   }
 
-  const isFormValid =
-    formData.orbital_period !== "" && formData.transit_duration !== "" && formData.transit_depth !== ""
+  const isFormValid = formData.koi_period !== "" && formData.koi_duration !== "" && formData.koi_depth !== ""
 
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Core Features */}
           <div className="space-y-2">
-            <Label htmlFor="orbital_period">Orbital Period (days) *</Label>
+            <Label htmlFor="koi_period">Orbital Period (days) *</Label>
             <Input
-              id="orbital_period"
-              name="orbital_period"
+              id="koi_period"
+              name="koi_period"
               type="number"
-              step="0.01"
+              step="any"
               placeholder="e.g., 3.52"
-              value={formData.orbital_period}
+              value={formData.koi_period}
               onChange={handleChange}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="transit_duration">Transit Duration (hours) *</Label>
+            <Label htmlFor="koi_duration">Transit Duration (hours) *</Label>
             <Input
-              id="transit_duration"
-              name="transit_duration"
+              id="koi_duration"
+              name="koi_duration"
               type="number"
-              step="0.01"
+              step="any"
               placeholder="e.g., 2.8"
-              value={formData.transit_duration}
+              value={formData.koi_duration}
               onChange={handleChange}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="transit_depth">Transit Depth (fraction) *</Label>
+            <Label htmlFor="koi_depth">Transit Depth (ppm) *</Label>
             <Input
-              id="transit_depth"
-              name="transit_depth"
+              id="koi_depth"
+              name="koi_depth"
               type="number"
-              step="0.0001"
+              step="any"
               placeholder="e.g., 0.012"
-              value={formData.transit_depth}
+              value={formData.koi_depth}
               onChange={handleChange}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="stellar_magnitude">Stellar Magnitude</Label>
+            <Label htmlFor="koi_model_snr">Signal-to-Noise Ratio</Label>
             <Input
-              id="stellar_magnitude"
-              name="stellar_magnitude"
+              id="koi_model_snr"
+              name="koi_model_snr"
               type="number"
-              step="0.01"
-              placeholder="e.g., 12.5"
-              value={formData.stellar_magnitude}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="planet_radius">Planet Radius (Earth radii)</Label>
-            <Input
-              id="planet_radius"
-              name="planet_radius"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 1.8"
-              value={formData.planet_radius}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="insolation_flux">Insolation Flux (Earth flux)</Label>
-            <Input
-              id="insolation_flux"
-              name="insolation_flux"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 450.2"
-              value={formData.insolation_flux}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="surface_gravity">Surface Gravity (m/s²)</Label>
-            <Input
-              id="surface_gravity"
-              name="surface_gravity"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 15.3"
-              value={formData.surface_gravity}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="impact_parameter">Impact Parameter</Label>
-            <Input
-              id="impact_parameter"
-              name="impact_parameter"
-              type="number"
-              step="0.001"
-              placeholder="e.g., 0.456"
-              value={formData.impact_parameter}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="snr">Signal-to-Noise Ratio (SNR)</Label>
-            <Input
-              id="snr"
-              name="snr"
-              type="number"
-              step="0.01"
+              step="any"
               placeholder="e.g., 25.4"
-              value={formData.snr}
+              value={formData.koi_model_snr}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_prad">Planet Radius (Earth radii)</Label>
+            <Input
+              id="koi_prad"
+              name="koi_prad"
+              type="number"
+              step="any"
+              placeholder="e.g., 1.8"
+              value={formData.koi_prad}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_insol">Insolation Flux (Earth flux)</Label>
+            <Input
+              id="koi_insol"
+              name="koi_insol"
+              type="number"
+              step="any"
+              placeholder="e.g., 450.2"
+              value={formData.koi_insol}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_slogg">Surface Gravity (log10(cm/s²))</Label>
+            <Input
+              id="koi_slogg"
+              name="koi_slogg"
+              type="number"
+              step="any"
+              placeholder="e.g., 4.5"
+              value={formData.koi_slogg}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_impact">Impact Parameter</Label>
+            <Input
+              id="koi_impact"
+              name="koi_impact"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.456"
+              value={formData.koi_impact}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_steff">Stellar Temperature (K)</Label>
+            <Input
+              id="koi_steff"
+              name="koi_steff"
+              type="number"
+              step="any"
+              placeholder="e.g., 5778"
+              value={formData.koi_steff}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_srad">Stellar Radius (Solar radii)</Label>
+            <Input
+              id="koi_srad"
+              name="koi_srad"
+              type="number"
+              step="any"
+              placeholder="e.g., 1.0"
+              value={formData.koi_srad}
+              onChange={handleChange}
+            />
+          </div>
+
+          {/* Error Measurements */}
+          <div className="space-y-2">
+            <Label htmlFor="koi_period_err1">Period Error (+)</Label>
+            <Input
+              id="koi_period_err1"
+              name="koi_period_err1"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.001"
+              value={formData.koi_period_err1}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_period_err2">Period Error (-)</Label>
+            <Input
+              id="koi_period_err2"
+              name="koi_period_err2"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.001"
+              value={formData.koi_period_err2}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_depth_err1">Depth Error (+)</Label>
+            <Input
+              id="koi_depth_err1"
+              name="koi_depth_err1"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.0001"
+              value={formData.koi_depth_err1}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_depth_err2">Depth Error (-)</Label>
+            <Input
+              id="koi_depth_err2"
+              name="koi_depth_err2"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.0001"
+              value={formData.koi_depth_err2}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_duration_err1">Duration Error (+)</Label>
+            <Input
+              id="koi_duration_err1"
+              name="koi_duration_err1"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.01"
+              value={formData.koi_duration_err1}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_duration_err2">Duration Error (-)</Label>
+            <Input
+              id="koi_duration_err2"
+              name="koi_duration_err2"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.01"
+              value={formData.koi_duration_err2}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_prad_err1">Radius Error (+)</Label>
+            <Input
+              id="koi_prad_err1"
+              name="koi_prad_err1"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.1"
+              value={formData.koi_prad_err1}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="koi_prad_err2">Radius Error (-)</Label>
+            <Input
+              id="koi_prad_err2"
+              name="koi_prad_err2"
+              type="number"
+              step="any"
+              placeholder="e.g., 0.1"
+              value={formData.koi_prad_err2}
               onChange={handleChange}
             />
           </div>
@@ -248,7 +374,10 @@ export function ClassifierForm() {
                 {result.classification}
               </Badge>
             </div>
-            <CardDescription>Analysis completed at {new Date(result.timestamp).toLocaleString()}</CardDescription>
+            <CardDescription>
+              Analysis completed at {new Date(result.timestamp).toLocaleString()}
+              {result.model_used && ` • ${result.model_used}`}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
